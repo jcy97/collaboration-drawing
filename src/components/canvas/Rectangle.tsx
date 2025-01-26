@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { RectangleLayer } from "~/types";
 import { colorToCss } from "~/utils";
 
@@ -12,7 +13,7 @@ export default function Rectangle({
   return (
     <g>
       <rect
-        style={{ transform: `translate(${x}px), ${y}px` }}
+        style={{ transform: `translate(${x}px, ${y}px)` }}
         width={width}
         height={height}
         fill={fill ? colorToCss(fill) : "#CCC"}

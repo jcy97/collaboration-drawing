@@ -65,20 +65,28 @@ export default function Canvas() {
           stroke: { r: 217, g: 217, b: 217 },
           opacity: 100,
         });
-        if (layer) {
-          liveLayerIds.push(layerId);
-          liveLayers.set(layerId, layer),
-            setMyPresence({ selection: [layerId] }, { addToHistory: true });
-        }
+      }
+      if (layer) {
+        liveLayerIds.push(layerId);
+        liveLayers.set(layerId, layer),
+          setMyPresence({ selection: [layerId] }, { addToHistory: true });
       }
     },
     [],
   );
 
-  const onPointerUp = useMutation(({}, e: React.PointerEvent) => {
-    const point = pointerEventToCanvasPoint(e, camrea);
-    insertLayer(LayerType.Ellipse, point);
-  }, []);
+  const onPointerUp = useMutation(
+    ({}, e: React.PointerEvent) => {
+      const point = pointerEventToCanvasPoint(e, camrea);
+      if (canvasState.mode === CanvasMode.None) {
+        setState({ mode: CanvasMode.None });
+      } else if (canvasState.mode === CanvasMode.Inserting) {
+        console.log(canvasState.layerType);
+        insertLayer(canvasState.layerType, point);
+      }
+    },
+    [canvasState, setState, insertLayer],
+  );
 
   return (
     <div className="flex h-screen w-full">

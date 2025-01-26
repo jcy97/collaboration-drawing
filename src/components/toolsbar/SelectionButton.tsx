@@ -1,5 +1,5 @@
 "use clinet";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CanvasMode } from "~/types";
 import IconButton from "./IconButton";
 import { BiPointer } from "react-icons/bi";
@@ -14,8 +14,17 @@ export default function SelectionButton({
   onClick: (canvasMode: CanvasMode.None | CanvasMode.Dragging) => void;
 }) {
   const [isOpen, setIsOpen] = useState(false);
-
   const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  });
 
   const handleClick = (canvasMode: CanvasMode.None | CanvasMode.Dragging) => {
     onClick(canvasMode);
