@@ -17,7 +17,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="ko" className={`${inter.className}`}>
-      <body>{children}</body>
+      <body className="autoscroll-none overflow-hidden">{children}</body>
     </html>
   );
 }

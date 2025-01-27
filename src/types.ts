@@ -89,6 +89,11 @@ export type CanvasState =
       mode: CanvasMode.None;
     }
   | {
+      mode: CanvasMode.SelectionNet;
+      origin: Point;
+      current: Point;
+    }
+  | {
       mode: CanvasMode.Dragging;
       origin: Point | null;
     }
@@ -107,6 +112,10 @@ export type CanvasState =
   | {
       mode: CanvasMode.Trasnlating;
       current: Point;
+    }
+  | {
+      mode: CanvasMode.Pressing;
+      origin: Point;
     };
 export enum CanvasMode {
   None,
@@ -115,4 +124,6 @@ export enum CanvasMode {
   Pencil,
   Resizing,
   Trasnlating,
+  SelectionNet,
+  Pressing,
 }
