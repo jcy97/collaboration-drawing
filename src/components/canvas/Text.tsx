@@ -3,7 +3,16 @@ import { useEffect, useRef, useState } from "react";
 import { TextLayer } from "~/types";
 import { colorToCss } from "~/utils";
 
-export default function Text({ id, layer }: { id: string; layer: TextLayer }) {
+export default function Text({
+  id,
+  layer,
+  onPointerDown,
+}: {
+  id: string;
+  layer: TextLayer;
+
+  onPointerDown: (e: React.PointerEvent, layerId: string) => void;
+}) {
   const {
     x,
     y,
@@ -77,8 +86,10 @@ export default function Text({ id, layer }: { id: string; layer: TextLayer }) {
         </foreignObject>
       ) : (
         <text
+          onPointerDown={(e) => onPointerDown(e, id)}
           x={x}
           y={y + fontSize}
+          fontSize={fontSize}
           fontWeight={fontWeight}
           fontFamily={fontFamily}
           fill={colorToCss(fill)}

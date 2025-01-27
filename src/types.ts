@@ -72,6 +72,18 @@ export type Point = {
   y: number;
 };
 
+export type XYWH = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
+export enum Side {
+  Top = 1,
+  Bottom = 2,
+  Left = 4,
+  Right = 8,
+}
 export type CanvasState =
   | {
       mode: CanvasMode.None;
@@ -86,10 +98,21 @@ export type CanvasState =
     }
   | {
       mode: CanvasMode.Pencil;
+    }
+  | {
+      mode: CanvasMode.Resizing;
+      initalBounds: XYWH;
+      corner: Side;
+    }
+  | {
+      mode: CanvasMode.Trasnlating;
+      current: Point;
     };
 export enum CanvasMode {
   None,
   Dragging,
   Inserting,
   Pencil,
+  Resizing,
+  Trasnlating,
 }
