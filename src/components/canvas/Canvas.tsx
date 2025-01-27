@@ -1,6 +1,9 @@
 "use client";
 
 import {
+  useCanRedo,
+  useCanUndo,
+  useHistory,
   useMutation,
   useMyPresence,
   useSelf,
@@ -46,6 +49,11 @@ export default function Canvas() {
     mode: CanvasMode.None,
   });
   const [camera, setCamera] = useState<Camera>({ x: 0, y: 0, zoom: 1 });
+  //라이브 블럭의 히스토리 및 undo, redo 기능으로 이력 관리를 쉽게 할 수 있다.
+  const history = useHistory();
+  const canUndo = useCanUndo();
+  const canRedo = useCanRedo();
+
   const onLayerPointerDown = useMutation(
     ({ self, setMyPresence }, e: React.PointerEvent, layerId: string) => {
       if (
@@ -54,29 +62,33 @@ export default function Canvas() {
       ) {
         return;
       }
-
+      history.pause();
       e.stopPropagation();
       if (!self.presence.selection.includes(layerId)) {
-        setMyPresence({
-          selection: [layerId],
-        });
+        setMyPresence(
+          {
+            selection: [layerId],
+          },
+          { addToHistory: true },
+        );
       }
       const point = pointerEventToCanvasPoint(e, camera);
       setState({ mode: CanvasMode.Trasnlating, current: point });
     },
-    [canvasState.mode, camera, canvasState.mode],
+    [canvasState.mode, camera, canvasState.mode, history],
   );
   //SelectionBox에 리사이징 영역을 클릭했을 때 Resize 상태로 변경
   //onPointerMove에 Resize로 인식될 것
   const onResizeHandlePointerDown = useCallback(
     (corner: Side, initalBounds: XYWH) => {
+      history.pause();
       setState({
         mode: CanvasMode.Resizing,
         initalBounds,
         corner,
       });
     },
-    [],
+    [history],
   );
 
   const insertLayer = useMutation(
@@ -187,7 +199,7 @@ export default function Canvas() {
     [canvasState],
   );
   const unselectLayers = useMutation(({ self, setMyPresence }) => {
-    setMyPresence({ selection: [] });
+    setMyPresence({ selection: [] }, { addToHistory: true });
   }, []);
   const startDrawing = useMutation(
     ({ setMyPresence }, point: Point, pressure) => {
@@ -223,7 +235,7 @@ export default function Canvas() {
       pencilDraft.length < 2 ||
       liveLayers.size >= MAX_LAYERS
     ) {
-      setMyPresence({ pencilDraft: null });
+      setMyPresence({ pencilDraft: null }, { addToHistory: true });
       return;
     }
     const id = nanoid();
@@ -295,8 +307,9 @@ export default function Canvas() {
       } else {
         setState({ mode: CanvasMode.None });
       }
+      history.resume();
     },
-    [canvasState, setState, insertLayer, unselectLayers],
+    [canvasState, setState, insertLayer, unselectLayers, history],
   );
 
   const onWheel = useCallback((e: React.WheelEvent) => {
@@ -362,6 +375,10 @@ export default function Canvas() {
         }}
         canZoomIn={camera.zoom < 2}
         canZoomOut={camera.zoom > 0.5}
+        redo={() => history.redo()}
+        undo={() => history.undo()}
+        canRedo={canRedo}
+        canUndo={canUndo}
       />
     </div>
   );
