@@ -38,6 +38,7 @@ import ToolsBar from "../toolsbar/ToolsBar";
 import Path from "./Path";
 import SelectionBox from "./SelectionBox";
 import { off } from "process";
+import useDeleteLayers from "~/hooks/useDeleteLayers";
 
 const MAX_LAYERS = 100;
 
@@ -45,6 +46,7 @@ export default function Canvas() {
   const roomColor = useStorage((root) => root.roomColor);
   const layerIds = useStorage((root) => root.layerIds);
   const pencilDraft = useSelf((me) => me.presence.pencilDraft);
+  const deleteLayers = useDeleteLayers();
   const presence = useMyPresence();
   const [canvasState, setState] = useState<CanvasState>({
     mode: CanvasMode.None,
@@ -54,7 +56,51 @@ export default function Canvas() {
   const history = useHistory();
   const canUndo = useCanUndo();
   const canRedo = useCanRedo();
+  const selectAllLayers = useMutation(
+    ({ setMyPresence }) => {
+      if (layerIds) {
+        setMyPresence({ selection: [...layerIds] }, { addToHistory: true });
+      }
+    },
+    [layerIds],
+  );
+  // 단축키 기능
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      //포커스를 받고 있는 요소
+      const activeElement = document.activeElement;
+      const isInputField =
+        activeElement &&
+        (activeElement.tagName === "INPUT" ||
+          activeElement.tagName === "TEXTAREA");
 
+      if (isInputField) return;
+      switch (e.key) {
+        case "Backspace":
+          deleteLayers();
+          break;
+        case "z":
+          //ctrlKey: 컨트롤키 , metaKey: 맥 커멘드 키
+          if (e.ctrlKey || e.metaKey) {
+            if (e.shiftKey) {
+              history.redo();
+            } else {
+              history.undo();
+            }
+          }
+          break;
+        case "a":
+          if (e.ctrlKey || e.metaKey) {
+            selectAllLayers();
+            break;
+          }
+      }
+    }
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [deleteLayers]);
   const onLayerPointerDown = useMutation(
     ({ self, setMyPresence }, e: React.PointerEvent, layerId: string) => {
       if (
@@ -260,6 +306,7 @@ export default function Canvas() {
         setState({ mode: CanvasMode.Dragging, origin: point });
         return;
       }
+      if (canvasState.mode === CanvasMode.Inserting) return;
       if (canvasState.mode === CanvasMode.Pencil) {
         //e.pressure -> 터치 스크린이라 스타일러스 펜에서 가하는 압력
         startDrawing(point, e.pressure);
