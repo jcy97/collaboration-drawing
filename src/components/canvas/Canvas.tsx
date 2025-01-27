@@ -39,6 +39,7 @@ import Path from "./Path";
 import SelectionBox from "./SelectionBox";
 import { off } from "process";
 import useDeleteLayers from "~/hooks/useDeleteLayers";
+import SelectionTools from "./SelectionTools";
 
 const MAX_LAYERS = 100;
 
@@ -119,10 +120,14 @@ export default function Canvas() {
           { addToHistory: true },
         );
       }
-      const point = pointerEventToCanvasPoint(e, camera);
-      setState({ mode: CanvasMode.Trasnlating, current: point });
+      if (e.nativeEvent.button === 2) {
+        setState({ mode: CanvasMode.RightClick });
+      } else {
+        const point = pointerEventToCanvasPoint(e, camera);
+        setState({ mode: CanvasMode.Trasnlating, current: point });
+      }
     },
-    [canvasState.mode, camera, canvasState.mode, history],
+    [camera, canvasState.mode, history],
   );
   //SelectionBox에 리사이징 영역을 클릭했을 때 Resize 상태로 변경
   //onPointerMove에 Resize로 인식될 것
@@ -194,6 +199,7 @@ export default function Canvas() {
         liveLayerIds.push(layerId);
         liveLayers.set(layerId, layer),
           setMyPresence({ selection: [layerId] }, { addToHistory: true });
+        setState({ mode: CanvasMode.None });
       }
     },
     [],
@@ -299,6 +305,7 @@ export default function Canvas() {
     setMyPresence({ pencilDraft: null });
     setState({ mode: CanvasMode.Pencil });
   }, []);
+
   const onPointerDown = useMutation(
     ({}, e: React.PointerEvent) => {
       const point = pointerEventToCanvasPoint(e, camera);
@@ -378,6 +385,7 @@ export default function Canvas() {
   );
   const onPointerUp = useMutation(
     ({}, e: React.PointerEvent) => {
+      if (canvasState.mode === CanvasMode.RightClick) return;
       const point = pointerEventToCanvasPoint(e, camera);
       if (
         canvasState.mode === CanvasMode.None ||
@@ -416,12 +424,14 @@ export default function Canvas() {
           }}
           className="h-full"
         >
+          <SelectionTools camera={camera} canvasMode={canvasState.mode} />
           <svg
             onWheel={onWheel}
             onPointerUp={onPointerUp}
             onPointerDown={onPointerDown}
             onPointerMove={onPointerMove}
             className="h-full w-full"
+            onContextMenu={(e) => e.preventDefault()}
           >
             <g
               style={{

@@ -89,6 +89,9 @@ export type CanvasState =
       mode: CanvasMode.None;
     }
   | {
+      mode: CanvasMode.RightClick;
+    }
+  | {
       mode: CanvasMode.SelectionNet;
       origin: Point;
       current: Point;
@@ -126,4 +129,5 @@ export enum CanvasMode {
   Trasnlating,
   SelectionNet,
   Pressing,
+  RightClick,
 }
