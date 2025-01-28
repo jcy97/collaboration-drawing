@@ -41,6 +41,7 @@ import { off } from "process";
 import useDeleteLayers from "~/hooks/useDeleteLayers";
 import SelectionTools from "./SelectionTools";
 import Sidebars from "../sidebars/Sidebars";
+import MultiplayerGuides from "./MultiplayerGuides";
 
 const MAX_LAYERS = 100;
 
@@ -276,6 +277,7 @@ export default function Canvas() {
         return;
       }
       setMyPresence({
+        cursor: point,
         pencilDraft: [...pencilDraft, [point.x, point.y, e.pressure]],
         penColor: { r: 217, g: 217, b: 217 },
       });
@@ -352,7 +354,7 @@ export default function Canvas() {
     [layerIds],
   );
   const onPointerMove = useMutation(
-    ({}, e: React.PointerEvent) => {
+    ({ setMyPresence }, e: React.PointerEvent) => {
       const point = pointerEventToCanvasPoint(e, camera);
       if (canvasState.mode === CanvasMode.Pressing) {
         startMultiSelection(point, canvasState.origin);
@@ -376,6 +378,7 @@ export default function Canvas() {
       } else if (canvasState.mode === CanvasMode.Resizing) {
         resizeSelectedLayer(point);
       }
+      setMyPresence({ cursor: point });
     },
     [
       camera,
@@ -385,6 +388,10 @@ export default function Canvas() {
       updateSelectionNet,
     ],
   );
+
+  const onPointerLeave = useMutation(({ setMyPresence }) => {
+    setMyPresence({ cursor: null });
+  }, []);
   const onPointerUp = useMutation(
     ({}, e: React.PointerEvent) => {
       if (canvasState.mode === CanvasMode.RightClick) return;
@@ -432,6 +439,7 @@ export default function Canvas() {
             onPointerUp={onPointerUp}
             onPointerDown={onPointerDown}
             onPointerMove={onPointerMove}
+            onPointerLeave={onPointerLeave}
             className="h-full w-full"
             onContextMenu={(e) => e.preventDefault()}
           >
@@ -475,6 +483,7 @@ export default function Canvas() {
                   points={pencilDraft}
                 />
               )}
+              <MultiplayerGuides />
             </g>
           </svg>
         </div>
