@@ -1,0 +1,52 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import UserAvatar from "../sidebars/UserAvatar";
+import { BiChevronDown } from "react-icons/bi";
+import { signout } from "~/app/actions/auth";
+import { GoSignOut } from "react-icons/go";
+
+export default function UserMenu({ email }: { email: string | null }) {
+  const menuRef = useRef<HTMLDivElement>(null);
+  const [isOpen, setIsOpen] = useState(false);
+
+  // 메뉴가 열려있을 때 메뉴 바깥 화면을 클릭하면 창이 닫히도록
+  // 상태 관리와 상관 없는, 즉 화면이 다시 그려지지 않는 동작은
+  // 다음과 같이 useRef를 사용한다.
+  useEffect(() => {
+    const handleClickOutSide = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutSide);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutSide);
+    };
+  }, []);
+  return (
+    <div className="relative">
+      <div
+        onClick={() => setIsOpen(true)}
+        className="flex w-fit cursor-pointer items-center gap-2 rounded-md p-1 hover:bg-gray-100"
+      >
+        <UserAvatar name={email ?? "Anonymous"} />
+        <h2 className="scroll-m-20 text-[13px] font-medium">{email}</h2>
+        <BiChevronDown className="h-4 w-4" />
+      </div>
+      <div
+        className={`${isOpen ? "" : "hidden"} absolute left-0 top-0 flex min-w-[150px] translate-y-full flex-col rounded-xl bg-[#1e1e1e] p-2 shadow-lg`}
+        ref={menuRef}
+      >
+        <button
+          onClick={signout}
+          className={`flex w-full items-center justify-between rounded-md p-1 text-white hover:bg-blue-500`}
+        >
+          <span className="text-xs">Sign out</span>
+          <GoSignOut className="mr-2 h-4 w-4" />
+        </button>
+      </div>
+    </div>
+  );
+}
