@@ -4,6 +4,9 @@ import { auth } from "~/server/auth";
 import { signout } from "../actions/auth";
 import { db } from "~/server/db";
 import UserMenu from "~/components/dashboard/UserMenu";
+import CreateRoom from "~/components/dashboard/CreateRoom";
+import RoomView from "~/components/dashboard/RoomsView";
+import RoomsView from "~/components/dashboard/RoomsView";
 
 export default async function Page() {
   const session = await auth();
@@ -32,7 +35,13 @@ export default async function Page() {
         <div className="flex min-h-[50px] items-center border-b border-gray-200 bg-white pl-8">
           <h2 className="text-[13px]">Recents</h2>
         </div>
-        <div className="flex h-full flex-col gap-10 p-8"></div>
+        <div className="flex h-full flex-col gap-10 p-8">
+          <CreateRoom />
+          <RoomsView
+            ownedRooms={user.ownerRooms}
+            roomInvites={user.roomInvites.map((x) => x.room)}
+          />
+        </div>
       </div>
     </div>
   );
